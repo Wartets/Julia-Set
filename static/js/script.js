@@ -195,9 +195,17 @@ canvas.addEventListener('mousemove', (e) => {
     if (isDragging) {
         const dx = e.clientX - dragStart.x;
         const dy = e.clientY - dragStart.y;
-        
-        offsetX -= (dx / width) * (maxX - minX);
-        offsetY -= (dy / height) * (maxY - minY);
+
+        const rangeX = maxX - minX;
+        const rangeY = maxY - minY;
+
+        const deltaX = (dx / width) * rangeX;
+        const deltaY = (dy / height) * rangeY;
+
+        minX -= deltaX;
+        maxX -= deltaX;
+        minY -= deltaY;
+        maxY -= deltaY;
 
         dragStart = { x: e.clientX, y: e.clientY };
 
