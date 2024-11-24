@@ -77,10 +77,8 @@ function pixelToComplex(x, y) {
 }
 
 // Compute color palette
-let colorPalette = [];
-
 function computeColorPalette() {
-    colorPalette = Array.from({ length: maxIter }, (_, iter) => {
+    return Array.from({ length: maxIter }, (_, iter) => {
         const t = iter / maxIter;
         return [
             Math.floor(9 * (1 - t) * t * t * t * 255),
@@ -88,7 +86,6 @@ function computeColorPalette() {
             Math.floor(8.5 * (1 - t) * (1 - t) * (1 - t) * t * 255)
         ];
     });
-    colorPalette[maxIter] = [0, 0, 0];
 }
 
 function adjustComplexBounds() {
@@ -131,6 +128,7 @@ function computeJuliaSet() {
                 iteration++;
             }
 
+            const colorPalette = computeColorPalette();
 			const color = iteration === maxIter ? [0, 0, 0] : colorPalette[iteration];
 
             const index = (px + py * lowResWidth) * 4;
