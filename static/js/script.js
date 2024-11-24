@@ -1,8 +1,8 @@
-// script.js
-
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
+
 const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
 
 // Canvas configuration
 canvas.width = window.innerWidth;
@@ -13,13 +13,26 @@ let height = canvas.height;
 
 // Complex plane bounds
 let minX = -2, maxX = 2, minY = -2, maxY = 2;
-let maxIter = 200;
-let resolutionFactor = 8; // Reduce resolution by this factor
+let maxIter = 250;
+let resolutionFactor = 8;
+
+// Variables for moving and zooming
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
+let offsetX = 0, offsetY = 0;
+let zoomFactor = 1;
+let zoomCenter = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
 // Parse equation input
 const controls = document.getElementById('controls');
 const equationInput = document.getElementById('equation');
 const applyButton = document.getElementById('apply');
+
+// Sliders
+const maxIterSlider = document.getElementById('maxIterSlider');
+const maxIterValue = document.getElementById('maxIterValue');
+const resolutionFactorSlider = document.getElementById('resolutionFactorSlider');
+const resolutionFactorValue = document.getElementById('resolutionFactorValue');
 
 // Default Julia set function
 let juliaFunction = (z) => math.add(math.multiply(z, z), math.complex(0.355, 0.355));
@@ -27,27 +40,70 @@ let juliaFunction = (z) => math.add(math.multiply(z, z), math.complex(0.355, 0.3
 // Add listeners
 applyButton.addEventListener('click', () => {
     try {
-        const equation = equationInput.value;
+        let equationText = equationInput.value;
 
-        // Try to parse the input equation and create a valid JavaScript function for complex numbers
-        juliaFunction = new Function('z', `
-            const math = window.math;
-            let realPart = z.re || z.re === 0 ? z.re : 0; // If z is complex, use its real part
-            let imagPart = z.im || z.im === 0 ? z.im : 0; // If z is complex, use its imaginary part
-            let result = ${equation}; // Use the input expression
-            return math.complex(result.re || 0, result.im || 0); // Return as complex number
-        `);
+        localStorage.setItem('equation', equationText);
+
+        const compiledEquation = math.compile(equationText);
+        juliaFunction = (z) => compiledEquation.evaluate({ z: z });
+
         resetView();
     } catch (e) {
-        alert("Erreur dans la fonction entrée. Assurez-vous que l'équation est valide.");
+        alert("Error in the function entered. Make sure the equation is valid.");
     }
 });
+
+// Update maxIter and resolutionFactor on slider change
+maxIterSlider.addEventListener('input', () => {
+    maxIter = parseInt(maxIterSlider.value);
+    maxIterValue.textContent = maxIter;
+    localStorage.setItem('maxIter', maxIter);
+    computeJuliaSet();
+});
+
+resolutionFactorSlider.addEventListener('input', () => {
+    resolutionFactor = parseInt(resolutionFactorSlider.value);
+    resolutionFactorValue.textContent = resolutionFactor;
+    localStorage.setItem('resolutionFactor', resolutionFactor);  
+    computeJuliaSet();
+});
+
+window.addEventListener('load', () => {
+    const savedMaxIter = localStorage.getItem('maxIter');
+    const savedResolutionFactor = localStorage.getItem('resolutionFactor');
+    const savedEquation = localStorage.getItem('equation');
+
+    if (savedMaxIter) {
+        maxIter = parseInt(savedMaxIter);
+        maxIterSlider.value = maxIter;
+        maxIterValue.textContent = maxIter;
+    }
+
+    if (savedResolutionFactor) {
+        resolutionFactor = parseInt(savedResolutionFactor);
+        resolutionFactorSlider.value = resolutionFactor;
+        resolutionFactorValue.textContent = resolutionFactor;
+    }
+
+    if (savedEquation) {
+        equationInput.value = savedEquation;
+        try {
+            const compiledEquation = math.compile(savedEquation);
+            juliaFunction = (z) => compiledEquation.evaluate({ z: z });
+        } catch (e) {
+            console.warn("The saved equation is invalid, an error has occurred.");
+        }
+    }
+
+    computeJuliaSet();
+});
+
 
 // Convert pixel to complex number
 function pixelToComplex(x, y) {
     return math.complex(
-        minX + (x / width) * (maxX - minX),
-        minY + (y / height) * (maxY - minY)
+        minX + (x / width) * (maxX - minX) + offsetX,
+        minY + (y / height) * (maxY - minY) + offsetY
     );
 }
 
@@ -97,22 +153,55 @@ function resetView() {
     computeJuliaSet();
 }
 
-// Handle zoom
-canvas.addEventListener('wheel', (event) => {
-    event.preventDefault();
+// Adjust canvas on resize
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    width = canvas.width;
+    height = canvas.height;
+    computeJuliaSet();
+});
 
-    const zoomFactor = event.deltaY < 0 ? 0.8 : 1.2;
-    const { offsetX, offsetY } = event;
+// Mouse move, drag, and zoom handlers
+canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 0) {
+        isDragging = true;
+        dragStart = { x: e.clientX, y: e.clientY };
+    }
+});
 
-    const { re: centerX, im: centerY } = pixelToComplex(offsetX, offsetY);
+canvas.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
+        
+        offsetX -= (dx / width) * (maxX - minX);
+        offsetY -= (dy / height) * (maxY - minY);
 
-    const rangeX = (maxX - minX) * zoomFactor;
-    const rangeY = (maxY - minY) * zoomFactor;
+        dragStart = { x: e.clientX, y: e.clientY };
 
-    minX = centerX - rangeX / 2;
-    maxX = centerX + rangeX / 2;
-    minY = centerY - rangeY / 2;
-    maxY = centerY + rangeY / 2;
+        computeJuliaSet();
+    }
+});
+
+canvas.addEventListener('mouseup', () => {
+    isDragging = false;
+});
+
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const scale = e.deltaY < 0 ? 0.95 : 1.05;
+
+    // Zoom centered on the mouse position
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+    const zoomX = minX + (mouseX / width) * (maxX - minX);
+    const zoomY = minY + (mouseY / height) * (maxY - minY);
+
+    minX = zoomX + (minX - zoomX) * scale;
+    maxX = zoomX + (maxX - zoomX) * scale;
+    minY = zoomY + (minY - zoomY) * scale;
+    maxY = zoomY + (maxY - zoomY) * scale;
 
     computeJuliaSet();
 });
@@ -135,6 +224,3 @@ window.addEventListener('resize', () => {
     height = canvas.height;
     computeJuliaSet();
 });
-
-// Initial rendering
-resetView();

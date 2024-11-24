@@ -6,14 +6,23 @@
 	<title>Julia Set Viewer</title>
 	<link rel="stylesheet" href="static\css\style.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
 </head>
 <body>
     <div id="controls">
-        <label for="equation">Équation de la fonction :</label>
-        <input type="text" id="equation" placeholder="Exemple : z^2 + 0.355">
+        <label for="equation">f(z) =</label>
+        <input type="text" id="equation" placeholder="Exemple : (1+z^2-z^3)/(z^2-1)+exp(z)/10i" value="z^2+0.355+0.355i">
         <button id="apply">OK</button>
     </div>
+	
+	<div id="sliders">
+		<label for="maxIterSlider">Max Iterations:</label>
+		<input type="range" id="maxIterSlider" min="2" max="1000" value="250" step="1">
+		<span id="maxIterValue">250</span>
+		<br>
+		<label for="resolutionFactorSlider">Resolution Factor:</label>
+		<input type="range" id="resolutionFactorSlider" min="2" max="96" value="14" step="1">
+		<span id="resolutionFactorValue">8</span>
+	</div>
 	<script src="static\js\script.js"></script>
 </body>
 </html>
