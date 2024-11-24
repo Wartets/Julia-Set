@@ -7,9 +7,8 @@ A web-based Julia Set viewer that allows users to explore the intricate and beau
 - **Dynamic Julia Set generation** based on user-defined equations.
 - **Interactive controls** to adjust the function, maximum iterations, and resolution.
 - **Zoom and pan functionality** to explore the fractal in detail.
-- **Real-time rendering** with instant updates on parameter changes.
+- **Real-time rendering** with almost "instant" updates on parameter changes.
 - **Equation input** to experiment with different complex functions.
-- **Persistent settings** saved using localStorage, so your preferences remain even after a page reload.
 
 ## Usage
 
@@ -27,6 +26,6 @@ A web-based Julia Set viewer that allows users to explore the intricate and beau
 
 ## Dependencies
 
-- **Math.js**: A comprehensive math library used for handling complex numbers and calculations.
+- **Math.js**: math library used for handling complex numbers and calculations.
 
 ---
