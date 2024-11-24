@@ -12,7 +12,7 @@ let width = canvas.width;
 let height = canvas.height;
 
 // Complex plane bounds
-let minX = -2, maxX = 2, minY = -2, maxY = 2;
+let minX = -3, maxX = 3, minY = -3, maxY = 3;
 let maxIter = 250;
 let resolutionFactor = 8;
 
@@ -107,8 +107,29 @@ function pixelToComplex(x, y) {
     );
 }
 
+function adjustComplexBounds() {
+    const aspectRatio = width / height;
+    if (aspectRatio > 1) {
+        // Canvas est plus large que haut
+        const rangeX = maxX - minX;
+        const centerY = (minY + maxY) / 2;
+        const rangeY = rangeX / aspectRatio;
+        minY = centerY - rangeY / 2;
+        maxY = centerY + rangeY / 2;
+    } else {
+        // Canvas est plus haut que large
+        const rangeY = maxY - minY;
+        const centerX = (minX + maxX) / 2;
+        const rangeX = rangeY * aspectRatio;
+        minX = centerX - rangeX / 2;
+        maxX = centerX + rangeX / 2;
+    }
+}
+
+
 // Julia set calculation
 function computeJuliaSet() {
+    adjustComplexBounds();
     const lowResWidth = Math.floor(width / resolutionFactor);
     const lowResHeight = Math.floor(height / resolutionFactor);
     const imageData = ctx.createImageData(lowResWidth, lowResHeight);
@@ -149,7 +170,7 @@ function computeJuliaSet() {
 
 // Reset view and redraw
 function resetView() {
-    minX = -2; maxX = 2; minY = -2; maxY = 2;
+	minX = -3, maxX = 3, minY = -3, maxY = 3;
     computeJuliaSet();
 }
 
