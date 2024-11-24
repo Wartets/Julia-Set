@@ -68,37 +68,6 @@ resolutionFactorSlider.addEventListener('input', () => {
     computeJuliaSet();
 });
 
-window.addEventListener('load', () => {
-    const savedMaxIter = localStorage.getItem('maxIter');
-    const savedResolutionFactor = localStorage.getItem('resolutionFactor');
-    const savedEquation = localStorage.getItem('equation');
-
-    if (savedMaxIter) {
-        maxIter = parseInt(savedMaxIter);
-        maxIterSlider.value = maxIter;
-        maxIterValue.textContent = maxIter;
-    }
-
-    if (savedResolutionFactor) {
-        resolutionFactor = parseInt(savedResolutionFactor);
-        resolutionFactorSlider.value = resolutionFactor;
-        resolutionFactorValue.textContent = resolutionFactor;
-    }
-
-    if (savedEquation) {
-        equationInput.value = savedEquation;
-        try {
-            const compiledEquation = math.compile(savedEquation);
-            juliaFunction = (z) => compiledEquation.evaluate({ z: z });
-        } catch (e) {
-            console.warn("The saved equation is invalid, an error has occurred.");
-        }
-    }
-
-    computeJuliaSet();
-});
-
-
 // Convert pixel to complex number
 function pixelToComplex(x, y) {
     return math.complex(
@@ -107,17 +76,30 @@ function pixelToComplex(x, y) {
     );
 }
 
+// Compute color palette
+let colorPalette = [];
+
+function computeColorPalette() {
+    colorPalette = Array.from({ length: maxIter }, (_, iter) => {
+        const t = iter / maxIter;
+        return [
+            Math.floor(9 * (1 - t) * t * t * t * 255),
+            Math.floor(15 * (1 - t) * (1 - t) * t * t * 255),
+            Math.floor(8.5 * (1 - t) * (1 - t) * (1 - t) * t * 255)
+        ];
+    });
+    colorPalette[maxIter] = [0, 0, 0];
+}
+
 function adjustComplexBounds() {
     const aspectRatio = width / height;
     if (aspectRatio > 1) {
-        // Canvas est plus large que haut
         const rangeX = maxX - minX;
         const centerY = (minY + maxY) / 2;
         const rangeY = rangeX / aspectRatio;
         minY = centerY - rangeY / 2;
         maxY = centerY + rangeY / 2;
     } else {
-        // Canvas est plus haut que large
         const rangeY = maxY - minY;
         const centerX = (minX + maxX) / 2;
         const rangeX = rangeY * aspectRatio;
@@ -149,7 +131,8 @@ function computeJuliaSet() {
                 iteration++;
             }
 
-            const color = iteration === maxIter ? [0, 0, 0] : colorMapping(iteration);
+			const color = iteration === maxIter ? [0, 0, 0] : colorPalette[iteration];
+
             const index = (px + py * lowResWidth) * 4;
             imageData.data[index] = color[0];
             imageData.data[index + 1] = color[1];
@@ -193,6 +176,7 @@ canvas.addEventListener('mousedown', (e) => {
 
 canvas.addEventListener('mousemove', (e) => {
     if (isDragging) {
+        resolutionFactor = Math.max(resolutionFactor, 16);
         const dx = e.clientX - dragStart.x;
         const dy = e.clientY - dragStart.y;
 
@@ -208,13 +192,15 @@ canvas.addEventListener('mousemove', (e) => {
         maxY -= deltaY;
 
         dragStart = { x: e.clientX, y: e.clientY };
-
-        computeJuliaSet();
+		
+		computeJuliaSet();
     }
 });
 
 canvas.addEventListener('mouseup', () => {
     isDragging = false;
+	resolutionFactor = parseInt(resolutionFactorSlider.value);
+	computeJuliaSet();
 });
 
 canvas.addEventListener('wheel', (e) => {
@@ -251,5 +237,37 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight;
     width = canvas.width;
     height = canvas.height;
+    computeJuliaSet();
+});
+
+window.addEventListener('load', () => {
+    const savedMaxIter = localStorage.getItem('maxIter');
+    const savedResolutionFactor = localStorage.getItem('resolutionFactor');
+    const savedEquation = localStorage.getItem('equation');
+
+    if (savedMaxIter) {
+        maxIter = parseInt(savedMaxIter);
+        maxIterSlider.value = maxIter;
+        maxIterValue.textContent = maxIter;
+    }
+
+    if (savedResolutionFactor) {
+        resolutionFactor = parseInt(savedResolutionFactor);
+        resolutionFactorSlider.value = resolutionFactor;
+        resolutionFactorValue.textContent = resolutionFactor;
+    }
+
+    if (savedEquation) {
+        equationInput.value = savedEquation;
+        try {
+            const compiledEquation = math.compile(savedEquation);
+            juliaFunction = (z) => compiledEquation.evaluate({ z: z });
+        } catch (e) {
+            console.warn("The saved equation is invalid, an error has occurred.");
+        }
+    }
+	
+    computeColorPalette();
+
     computeJuliaSet();
 });
