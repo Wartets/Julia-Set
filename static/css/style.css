@@ -79,12 +79,6 @@ body {
     font-size: 12px;
 }
 
-#controls:hover,
-#sliders:hover {
-	opacity: 0.8;
-	transform: scale(1);
-}
-
 #canvas-container {
     flex: 1;
     position: relative;
