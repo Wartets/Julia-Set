@@ -115,7 +115,6 @@ function adjustComplexBounds() {
     }
 }
 
-
 // Julia set calculation
 function computeJuliaSet() {
     adjustComplexBounds();
@@ -191,9 +190,11 @@ window.addEventListener('resize', () => {
 // Mouse move, drag, and zoom handlers
 canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
+        resolutionFactor = Math.max(resolutionFactor, 16);
         isTouchDragging = true;
         lastTouchPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
+        resolutionFactor = Math.max(resolutionFactor, 16);
         lastTouchDistance = getDistance(e.touches[0], e.touches[1]);
         lastTouchCenter = getTouchCenter(e.touches[0], e.touches[1]);
     }
@@ -248,6 +249,7 @@ canvas.addEventListener('touchend', (e) => {
         lastTouchDistance = 0;
         lastTouchCenter = null;
         lastTouchPosition = null;
+		resolutionFactor = parseInt(resolutionFactorSlider.value);
     }
 });
 
