@@ -19,6 +19,12 @@ let resolutionFactor = 8;
 // Variables for moving and zooming
 let isDragging = false;
 let dragStart = { x: 0, y: 0 };
+
+let lastTouchDistance = 0;
+let lastTouchCenter = null;
+let isTouchDragging = false;
+let lastTouchPosition = null;
+
 let offsetX = 0, offsetY = 0;
 let zoomFactor = 1;
 let zoomCenter = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -58,6 +64,7 @@ maxIterSlider.addEventListener('input', () => {
     maxIter = parseInt(maxIterSlider.value);
     maxIterValue.textContent = maxIter;
     localStorage.setItem('maxIter', maxIter);
+	computeColorPalette()
     computeJuliaSet();
 });
 
@@ -152,6 +159,20 @@ function computeJuliaSet() {
     ctx.drawImage(scaledCanvas, 0, 0, width, height);
 }
 
+function getDistance(touch1, touch2) {
+    return Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+}
+
+function getTouchCenter(touch1, touch2) {
+    return {
+        x: (touch1.clientX + touch2.clientX) / 2,
+        y: (touch1.clientY + touch2.clientY) / 2,
+    };
+}
+
 // Reset view and redraw
 function resetView() {
 	minX = -3, maxX = 3, minY = -3, maxY = 3;
@@ -168,6 +189,68 @@ window.addEventListener('resize', () => {
 });
 
 // Mouse move, drag, and zoom handlers
+canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        isTouchDragging = true;
+        lastTouchPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    } else if (e.touches.length === 2) {
+        lastTouchDistance = getDistance(e.touches[0], e.touches[1]);
+        lastTouchCenter = getTouchCenter(e.touches[0], e.touches[1]);
+    }
+});
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+
+    if (e.touches.length === 1 && isTouchDragging) {
+        // Déplacement avec un doigt
+        const dx = e.touches[0].clientX - lastTouchPosition.x;
+        const dy = e.touches[0].clientY - lastTouchPosition.y;
+
+        const rangeX = maxX - minX;
+        const rangeY = maxY - minY;
+
+        const deltaX = (dx / width) * rangeX;
+        const deltaY = (dy / height) * rangeY;
+
+        minX -= deltaX;
+        maxX -= deltaX;
+        minY -= deltaY;
+        maxY -= deltaY;
+
+        lastTouchPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+        computeJuliaSet();
+    } else if (e.touches.length === 2) {
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+        const scale = lastTouchDistance > 0 ? currentDistance / lastTouchDistance : 1;
+
+        if (scale !== 1) {
+            const center = getTouchCenter(e.touches[0], e.touches[1]);
+            const zoomX = minX + (center.x / width) * (maxX - minX);
+            const zoomY = minY + (center.y / height) * (maxY - minY);
+
+            minX = zoomX + (minX - zoomX) / scale;
+            maxX = zoomX + (maxX - zoomX) / scale;
+            minY = zoomY + (minY - zoomY) / scale;
+            maxY = zoomY + (maxY - zoomY) / scale;
+
+            lastTouchDistance = currentDistance;
+
+            computeJuliaSet();
+        }
+    }
+});
+
+canvas.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+        isTouchDragging = false;
+        lastTouchDistance = 0;
+        lastTouchCenter = null;
+        lastTouchPosition = null;
+    }
+});
+
 canvas.addEventListener('mousedown', (e) => {
     if (e.button === 0) {
         isDragging = true;
