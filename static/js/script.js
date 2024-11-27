@@ -88,11 +88,12 @@ let colorPalette = [];
 
 function computeColorPalette() {
 	colorPalette = Array.from({ length: maxIter }, (_, iter) => {
-		const t = iter / maxIter;
+		const t = iter / Math.sqrt(maxIter);
+		const s = iter / (maxIter);
 		return [
 			Math.floor(9 * (1 - t) * t * t * t * 255),
-			Math.floor(15 * (1 - t) * (1 - t) * t * t * 255),
-			Math.floor(8.5 * (1 - t) * (1 - t) * (1 - t) * t * 255)
+			Math.floor(15 * (1 - s) * (1 - s) * s * s * 255),
+			Math.floor(8.5 * (1 - t) * (1 - t) * (1 - t) * s * 255)
 		];
 	});
 	colorPalette[maxIter] = [0, 0, 0];
@@ -175,6 +176,7 @@ function getTouchCenter(touch1, touch2) {
 // Reset view and redraw
 function resetView() {
 	minX = -3, maxX = 3, minY = -3, maxY = 3;
+	computeColorPalette();
 	computeJuliaSet();
 }
 
@@ -204,7 +206,6 @@ canvas.addEventListener('touchmove', (e) => {
 	e.preventDefault();
 
 	if (e.touches.length === 1 && isTouchDragging) {
-		// Déplacement avec un doigt
 		const dx = e.touches[0].clientX - lastTouchPosition.x;
 		const dy = e.touches[0].clientY - lastTouchPosition.y;
 
