@@ -11,7 +11,6 @@
 	<meta name="description" content="Dive into the mesmerizing world of Julia sets. Create custom fractal visuals in real-time with interactive controls, designed by Wartets (Colin Bossu). Explore stunning mathematical patterns with a simple, user-friendly interface.">
 	<meta name="keywords" content="Julia set, fractals, real-time rendering, interactive fractals, visual art, Colin Bossu, Wartets, mathematical patterns">
 
-	<!-- Open Graph Meta Tags -->
 	<meta property="og:title" content="Julia Sets Interactive Art | Wartets Fractal Visuals">
 	<meta property="og:description" content="Create stunning Julia set fractals in real-time with interactive controls. Explore and adjust mathematical patterns with ease in this unique creation by Wartets (Colin Bossu).">
 	<meta property="og:image" content="https://wartets.github.io/Wartets/img/JuilaSet-card.png">
@@ -23,21 +22,65 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
 </head>
 <body>
-	<div id="controls">
-		<label for="equation">f(z) =</label>
-		<input type="text" id="equation" placeholder="Exemple : (1+z^2-z^3)/(z^2-1)+exp(z)/10i" value="z^2+0.355+0.355i">
-		<button id="apply">OK</button>
+	<div id="ui-panel">
+		<div id="ui-header">
+			<span id="ui-title">Controls</span>
+			<button id="ui-toggle" type="button">Hide</button>
+		</div>
+		<div id="ui-content">
+			<div id="controls">
+				<div class="control-group">
+					<label for="equation">f(z) =</label>
+					<input type="text" id="equation" placeholder="Exemple : (1+z^2-z^3)/(z^2-1)+exp(z)/10i" value="z^2+0.355+0.355i">
+					<button id="apply">OK</button>
+				</div>
+				
+				<div class="control-group">
+					<label for="colorPalette">Palette</label>
+					<select id="colorPalette">
+						<option value="original">Original</option>
+						<option value="vibrant">Vibrant</option>
+						<option value="cool">Cool</option>
+						<option value="warm">Warm</option>
+						<option value="dark">Dark</option>
+						<option value="sunset">Sunset</option>
+						<option value="ocean">Ocean</option>
+						<option value="fire">Fire</option>
+					</select>
+				</div>
+
+				<div class="control-group">
+					<label for="presets">Preset</label>
+					<select id="presets">
+						<option value="">-- Select a preset --</option>
+						<option value="Classic Dragon">Classic Dragon</option>
+						<option value="Spiral Galaxy">Spiral Galaxy</option>
+						<option value="Ice Crystal">Ice Crystal</option>
+						<option value="Twin Spiral">Twin Spiral</option>
+						<option value="Seahorse Valley">Seahorse Valley</option>
+						<option value="Mandelbrot Zoom">Mandelbrot Zoom</option>
+						<option value="Purple Nebula">Purple Nebula</option>
+						<option value="Phoenix Flame">Phoenix Flame</option>
+						<option value="Electric Tentacles">Electric Tentacles</option>
+						<option value="Kaleidoscope">Kaleidoscope</option>
+					</select>
+				</div>
+			</div>
+			
+			<div id="sliders">
+				<div class="slider-row">
+					<label for="maxIterSlider">Max Iter</label>
+					<input type="range" id="maxIterSlider" min="4" max="1000" value="500" step="1">
+					<span id="maxIterValue">500</span>
+				</div>
+				<div class="slider-row">
+					<label for="resolutionFactorSlider">Res</label>
+					<input type="range" id="resolutionFactorSlider" min="1" max="8" value="4" step="1">
+					<span id="resolutionFactorValue">4</span>
+				</div>
+			</div>
+		</div>
 	</div>
-	
-	<div id="sliders">
-		<label for="maxIterSlider">Max Iterations:</label>
-		<input type="range" id="maxIterSlider" min="4" max="400" value="250" step="1">
-		<span id="maxIterValue">250</span>
-		<br>
-		<label for="resolutionFactorSlider">Resolution Factor:</label>
-		<input type="range" id="resolutionFactorSlider" min="2" max="96" value="14" step="1">
-		<span id="resolutionFactorValue">8</span>
-	</div>
-	<script src="static\js\script.js"></script>
+	<script type="module" src="static/js/main.js"></script>
 </body>
 </html>
